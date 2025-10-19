@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ScrollArea,
   Text,
@@ -218,6 +218,16 @@ export default function ComparativeLLMResults({ results, isLoading }: Comparativ
   const [lastResults, setLastResults] = useState<ComparativeResults | null>(null);
   const [polledResults, setPolledResults] = useState<ComparativeResults | null>(null);
 
+  // 🔧 FIX: Use refs to access latest frozen state in polling callback
+  const frozenModelsRef = useRef(frozenModels);
+  const frozenAnalysesRef = useRef(frozenAnalyses);
+
+  // Keep refs in sync
+  useEffect(() => {
+    frozenModelsRef.current = frozenModels;
+    frozenAnalysesRef.current = frozenAnalyses;
+  }, [frozenModels, frozenAnalyses]);
+
   // 🔧 CRITICAL FIX: Only poll when NOT frozen, and respect backend LLM interval
   useEffect(() => {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
@@ -242,6 +252,12 @@ export default function ComparativeLLMResults({ results, isLoading }: Comparativ
     };
 
     const pollLatestAnalysis = async () => {
+      // 🔧 CRITICAL FIX: Don't poll if ANY model is frozen (prevents scroll jump)
+      if (frozenModelsRef.current.size > 0) {
+        console.log(`❄️ Skipping poll - ${frozenModelsRef.current.size} model(s) frozen`);
+        return;
+      }
+
       const pollTime = new Date().toLocaleTimeString();
       console.log(`🔄 [${pollTime}] Polling latest analysis...`);
 
@@ -254,6 +270,7 @@ export default function ComparativeLLMResults({ results, isLoading }: Comparativ
             if (data.timestamp && data.timestamp !== lastTimestamp) {
               console.log(`✅ [${pollTime}] Polled NEW analysis:`, data.timestamp);
               lastTimestamp = data.timestamp;
+
               setPolledResults(data);
             } else {
               console.log(`⏭️ [${pollTime}] Skipping update - same timestamp:`, data.timestamp);
