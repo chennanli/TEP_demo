@@ -16,6 +16,10 @@ import logging
 from datetime import datetime, timedelta
 from collections import defaultdict
 import os
+from dotenv import load_dotenv
+
+# 🔧 CRITICAL FIX: Load .env file to get API keys
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
