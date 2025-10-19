@@ -1,6 +1,9 @@
 """
 Multi-LLM Client for FaultExplainer
-Supports LMStudio (local), Claude (Anthropic API), and Gemini (Google API)
+Supports:
+- Claude (Anthropic API) - Premium, high-quality reasoning
+- Gemini (Google API) - Premium with free tier, fast, 1M context
+- LMStudio (local) - Free, runs on your machine
 """
 
 import json
@@ -32,7 +35,7 @@ def resolve_env_vars(value: str) -> str:
 
 
 class MultiLLMClient:
-    """Multi-LLM client supporting LMStudio, Claude, and Gemini"""
+    """Multi-LLM client supporting Claude, Gemini, and LMStudio"""
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
@@ -50,7 +53,7 @@ class MultiLLMClient:
         # Shutdown callback for simulation control
         self.shutdown_callback = None
 
-        # Initialize LMStudio, Claude, and Gemini
+        # Initialize Claude, Gemini, and LMStudio
         for model_name, model_config in config["models"].items():
             if model_name == "lmstudio":
                 self.clients[model_name] = self._init_lmstudio(model_config)
@@ -82,13 +85,14 @@ class MultiLLMClient:
 
     def _init_gemini(self, config: Dict[str, Any]) -> dict:
         """Initialize Gemini client - returns dict with client and model name"""
-        api_key = config["api_key"]
+        api_key = resolve_env_vars(config["api_key"])  # 🔧 FIX: Resolve ${GEMINI_API_KEY}
         model_name = config.get("model_name", "gemini-2.5-flash")
 
-        # Use new google.genai SDK with timeout configuration (60 seconds = 60000ms)
+        # Use new google.genai SDK with timeout configuration (180 seconds = 180000ms)
+        # 🔧 INCREASED: Was 60s, now 180s to match backend total timeout and prevent intermittent errors
         client = genai.Client(
             api_key=api_key,
-            http_options=types.HttpOptions(timeout=60_000)  # 60 seconds timeout
+            http_options=types.HttpOptions(timeout=180_000)  # 180 seconds timeout (was 60_000)
         )
 
         return {
@@ -98,7 +102,7 @@ class MultiLLMClient:
 
     def _is_premium_model(self, model_name: str) -> bool:
         """Check if model is premium (costs money)"""
-        return model_name in ["anthropic", "gemini"]
+        return model_name in ["anthropic", "gemini"]  # lmstudio is free
     
     def _start_premium_session_timer(self):
         """Start auto-shutdown timer for premium models"""
@@ -464,7 +468,7 @@ class MultiLLMClient:
         except Exception as e:
             error_msg = str(e)
             if "timeout" in error_msg.lower() or "deadline" in error_msg.lower():
-                raise Exception("Gemini timeout after 60 seconds")
+                raise Exception("Gemini timeout after 180 seconds")
             raise Exception(f"Gemini failed: {error_msg}")
 
     def format_comparative_results(self, results: Dict[str, Any], feature_comparison: str = "") -> Dict[str, Any]:
