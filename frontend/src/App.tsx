@@ -893,6 +893,27 @@ export default function App() {
         // Users can view results in the Multi-LLM Analysis tab and Unified Console
       } else {
         console.error("❌ Error response from server:", response.status);
+
+        // 🔧 NEW: Better error handling for 429 rate limit
+        if (response.status === 429) {
+          const errorData = await response.json().catch(() => ({}));
+          const retryAfter = errorData.retry_after || 30;
+          const reason = errorData.reason || "Too many requests";
+
+          console.warn(`⏱️ Rate limit: ${reason} - retry after ${retryAfter}s`);
+
+          const rateLimitMessage: ChatMessage = {
+            id: id,
+            role: "assistant",
+            text: `⏱️ **Analysis Rate Limited**\n\n${reason}\n\nPlease wait ${retryAfter} seconds before next analysis.\n\n💡 Tip: Click "Pause All" button to stop auto-analysis, or disable Smart Analysis checkbox.`,
+            images: [],
+            explanation: true,
+          };
+
+          setConversation((prevMessages) => [...prevMessages, rateLimitMessage]);
+          return; // Don't throw, just show message
+        }
+
         throw new Error(`Server error: ${response.status}`);
       }
     } catch (error) {
