@@ -779,7 +779,7 @@ async def ingest_live_point(req: IngestRequest):
 
                                     with open(_history_md_file, 'a') as mf:
                                         mf.write(md)
-                                    day_name = _time.strftime("%Y-%m-%d")
+                                    day_name = time.strftime("%Y-%m-%d")
                                     day_path = os.path.join(_history_days_dir, f"{day_name}.md")
                                     with open(day_path, 'a') as df:
                                         df.write(md)
@@ -787,10 +787,10 @@ async def ingest_live_point(req: IngestRequest):
                                     logger.warning("failed to append md history: %s", _em)
                             except Exception as _e:
                                 logger.warning("failed to append history file: %s", _e)
-                            total_duration = _time.time() - analysis_start_time
+                            total_duration = time.time() - analysis_start_time
                             logger.info(f"✅ Background LLM analysis completed in {total_duration:.2f}s")
                         except asyncio.TimeoutError:
-                            logger.error(f"❌ Background LLM analysis timed out after {_time.time() - analysis_start_time:.2f}s")
+                            logger.error(f"❌ Background LLM analysis timed out after {time.time() - analysis_start_time:.2f}s")
                         except Exception as e:
                             logger.error(f"❌ Background LLM analysis failed: {e}")
                             import traceback
@@ -799,7 +799,7 @@ async def ingest_live_point(req: IngestRequest):
                             # 🔧 CRITICAL: Always clear analyzing flag, no matter what
                             if anomaly_state_tracker.is_analyzing:
                                 anomaly_state_tracker.is_analyzing = False
-                                flag_duration = _time.time() - analysis_start_time
+                                flag_duration = time.time() - analysis_start_time
                                 logger.info(f"🔓 LLM analysis flag cleared after {flag_duration:.2f}s")
                             else:
                                 logger.warning("⚠️ Flag was already cleared (unexpected)")
