@@ -248,16 +248,25 @@ llm_min_interval = config.get("llm_min_interval_seconds", 30)  # Default to 30s 
 anomaly_state_tracker = AnomalyStateTracker(check_interval=5, min_llm_interval=llm_min_interval)
 print(f"✅ Anomaly State Tracker initialized (check interval: 5s, min LLM interval: {llm_min_interval}s)")
 
-# Feature columns to use for PCA (match bridge mapping and frontend columnFilter subset)
-# EXPANDED: Added XMV variables for complete TEP monitoring including control variables
+# Feature columns to use for PCA - ALL 52 TEP features for complete anomaly detection
+# Includes: 22 XMEAS (process measurements) + 19 XMEAS compositions + 11 XMV (manipulated variables)
 FEATURE_COLUMNS: List[str] = [
+    # XMEAS 1-22: Process measurements
     "A Feed", "D Feed", "E Feed", "A and C Feed", "Recycle Flow",
     "Reactor Feed Rate", "Reactor Pressure", "Reactor Level", "Reactor Temperature",
     "Purge Rate", "Product Sep Temp", "Product Sep Level", "Product Sep Pressure",
     "Product Sep Underflow", "Stripper Level", "Stripper Pressure", "Stripper Underflow",
     "Stripper Temp", "Stripper Steam Flow", "Compressor Work", "Reactor Coolant Temp",
     "Separator Coolant Temp",
-    # XMV (Manipulated Variables) - Control inputs
+    # XMEAS 23-41: Component compositions (critical for fault detection!)
+    "Component A to Reactor", "Component B to Reactor", "Component C to Reactor",
+    "Component D to Reactor", "Component E to Reactor", "Component F to Reactor",
+    "Component A in Purge", "Component B in Purge", "Component C in Purge",
+    "Component D in Purge", "Component E in Purge", "Component F in Purge",
+    "Component G in Purge", "Component H in Purge",
+    "Component D in Product", "Component E in Product", "Component F in Product",
+    "Component G in Product", "Component H in Product",
+    # XMV 1-11: Manipulated variables (control inputs)
     "D feed load", "E feed load", "A feed load", "A and C feed load",
     "Compressor recycle valve", "Purge valve", "Separator liquid load",
     "Stripper liquid load", "Stripper steam valve", "Reactor coolant load",

@@ -134,7 +134,9 @@ data/simulation_results/*.dat
 
 # EXCEPTIONS: Include critical files needed for distribution (must come AFTER wildcards)
 !backend/data/fault*.csv
-!backend/data/features_mean_std.csv
+!backend/data/normal_baseline.csv
+!backend/data/live_fault0.csv
+!backend/stats/features_mean_std.csv
 !frontend/public/images/tep_flowsheet.png
 
 # Large archive files
