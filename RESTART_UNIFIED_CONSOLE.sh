@@ -22,6 +22,6 @@ fi
 
 # Start new process
 echo "🚀 Starting unified console with new code..."
-python3 unified_console.py
+.venv/bin/python3 unified_console.py
 
 echo "✅ Unified console restarted!"

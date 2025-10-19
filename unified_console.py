@@ -190,19 +190,27 @@ class TEPDataBridge:
             self.tep2py = None
     def map_to_faultexplainer_features(self, data_point):
         """Map XMEAS_* and XMV_* keys to FaultExplainer friendly feature names required by /ingest.
-        EXPANDED: Now includes XMV (manipulated variables) for complete TEP monitoring.
+        EXPANDED: Now includes ALL 52 TEP features (XMEAS 1-41 + XMV 1-11) for complete anomaly detection.
         """
-        # XMEAS variables (measurements)
+        # XMEAS variables (measurements) - XMEAS 1-22
         xmeas_to_name = {
             1: 'A Feed', 2: 'D Feed', 3: 'E Feed', 4: 'A and C Feed', 5: 'Recycle Flow',
             6: 'Reactor Feed Rate', 7: 'Reactor Pressure', 8: 'Reactor Level', 9: 'Reactor Temperature',
             10: 'Purge Rate', 11: 'Product Sep Temp', 12: 'Product Sep Level', 13: 'Product Sep Pressure',
             14: 'Product Sep Underflow', 15: 'Stripper Level', 16: 'Stripper Pressure', 17: 'Stripper Underflow',
             18: 'Stripper Temp', 19: 'Stripper Steam Flow', 20: 'Compressor Work', 21: 'Reactor Coolant Temp',
-            22: 'Separator Coolant Temp'
+            22: 'Separator Coolant Temp',
+            # XMEAS 23-41: Component compositions (CRITICAL for fault detection!)
+            23: 'Component A to Reactor', 24: 'Component B to Reactor', 25: 'Component C to Reactor',
+            26: 'Component D to Reactor', 27: 'Component E to Reactor', 28: 'Component F to Reactor',
+            29: 'Component A in Purge', 30: 'Component B in Purge', 31: 'Component C in Purge',
+            32: 'Component D in Purge', 33: 'Component E in Purge', 34: 'Component F in Purge',
+            35: 'Component G in Purge', 36: 'Component H in Purge',
+            37: 'Component D in Product', 38: 'Component E in Product', 39: 'Component F in Product',
+            40: 'Component G in Product', 41: 'Component H in Product'
         }
 
-        # XMV variables (manipulated/control variables) - ADDED for complete monitoring
+        # XMV variables (manipulated/control variables) - XMV 1-11
         xmv_to_name = {
             1: 'D feed load', 2: 'E feed load', 3: 'A feed load', 4: 'A and C feed load',
             5: 'Compressor recycle valve', 6: 'Purge valve', 7: 'Separator liquid load',
@@ -211,11 +219,11 @@ class TEPDataBridge:
         }
 
         row = {}
-        # Map XMEAS variables
+        # Map XMEAS variables (1-41, ALL 41 measurements including compositions)
         for i, name in xmeas_to_name.items():
             row[name] = float(data_point.get(f'XMEAS_{i}', 0.0))
 
-        # Map XMV variables (ADDED)
+        # Map XMV variables (1-11, all manipulated variables)
         for i, name in xmv_to_name.items():
             row[name] = float(data_point.get(f'XMV_{i}', 0.0))
 
@@ -1450,7 +1458,7 @@ class UnifiedControlPanel:
                     import requests
                     # First check if backend already running
                     try:
-                        response = requests.get('http://127.0.0.1:8000/api/status', timeout=1)
+                        response = requests.get('http://127.0.0.1:8000/status', timeout=1)
                         if response.status_code == 200:
                             results.append("✅ Backend already running on port 8000")
                             backend_available = True
@@ -1493,14 +1501,41 @@ class UnifiedControlPanel:
                             import subprocess
                             script_dir = os.path.dirname(os.path.abspath(__file__))
                             venv_python = os.path.join(script_dir, '.venv','bin','python')
-                            bridge_script_dir = script_dir
-                            process = subprocess.Popen([venv_python, 'backend/tep_faultexplainer_bridge.py'],
-                                                       cwd=bridge_script_dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                            self.bridge.processes['tep_bridge'] = process
-                            results.append("✅ Bridge started - connecting TEP to FaultExplainer")
-                            time.sleep(1)  # Wait for bridge to initialize
+                            bridge_script = os.path.join(script_dir, 'backend', 'tep_faultexplainer_bridge.py')
+
+                            # 🔧 FIX: Check if files exist before starting
+                            if not os.path.exists(venv_python):
+                                results.append(f"⚠️ Bridge start failed: Virtual environment python not found at {venv_python}")
+                                results.append(f"💡 Hint: Try using system python or check .venv installation")
+                            elif not os.path.exists(bridge_script):
+                                results.append(f"⚠️ Bridge start failed: Bridge script not found at {bridge_script}")
+                            else:
+                                # 🔧 FIX: Open log file for bridge output
+                                bridge_log = os.path.join(script_dir, 'bridge.log')
+                                log_file = open(bridge_log, 'w')
+
+                                # 🔧 FIX: Start bridge with output to log file (not PIPE)
+                                process = subprocess.Popen(
+                                    [venv_python, bridge_script],
+                                    cwd=script_dir,
+                                    stdout=log_file,
+                                    stderr=subprocess.STDOUT,
+                                    start_new_session=True  # Detach from parent
+                                )
+                                self.bridge.processes['tep_bridge'] = process
+                                results.append(f"✅ Bridge started (PID: {process.pid}) - connecting TEP to FaultExplainer")
+                                results.append(f"📋 Bridge logs: {bridge_log}")
+                                time.sleep(2)  # Wait longer for bridge to initialize
+
+                                # 🔧 FIX: Check if process is still alive
+                                if process.poll() is not None:
+                                    results.append(f"⚠️ Bridge process exited immediately (check {bridge_log})")
+                                else:
+                                    results.append("✅ Bridge is running")
                     except Exception as e:
+                        import traceback
                         results.append(f"⚠️ Bridge start failed: {str(e)}")
+                        results.append(f"📋 Full error: {traceback.format_exc()}")
                 else:
                     results.append("ℹ️  Bridge not started (no external backend)")
 

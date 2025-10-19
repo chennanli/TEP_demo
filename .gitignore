@@ -281,3 +281,4 @@ backend/quick_test.sh
 backend/verify_config.sh
 *_test.sh
 *verify*.sh
+.temp/
