@@ -24,10 +24,12 @@ class TEPFaultExplainerBridge:
         self.data_buffer = deque(maxlen=self.window_size)
         self.last_processed_step = -1
         
-        # TEP to FaultExplainer variable mapping
+        # TEP to FaultExplainer variable mapping - ALL 52 TEP features
+        # Upgraded to match unified_console.py for complete fault detection coverage
         self.variable_mapping = {
+            # XMEAS 1-22: Process measurements (original 22 features)
             'XMEAS_1': 'A Feed',
-            'XMEAS_2': 'D Feed', 
+            'XMEAS_2': 'D Feed',
             'XMEAS_3': 'E Feed',
             'XMEAS_4': 'A and C Feed',
             'XMEAS_5': 'Recycle Flow',
@@ -47,12 +49,49 @@ class TEPFaultExplainerBridge:
             'XMEAS_19': 'Stripper Steam Flow',
             'XMEAS_20': 'Compressor Work',
             'XMEAS_21': 'Reactor Coolant Temp',
-            'XMEAS_22': 'Separator Coolant Temp'
+            'XMEAS_22': 'Separator Coolant Temp',
+
+            # XMEAS 23-41: Component compositions (CRITICAL for fault detection!)
+            # These are essential for detecting composition-related faults (IDV 1, 4, 8, 11, etc.)
+            'XMEAS_23': 'Component A to Reactor',
+            'XMEAS_24': 'Component B to Reactor',
+            'XMEAS_25': 'Component C to Reactor',
+            'XMEAS_26': 'Component D to Reactor',
+            'XMEAS_27': 'Component E to Reactor',
+            'XMEAS_28': 'Component F to Reactor',
+            'XMEAS_29': 'Component A in Purge',
+            'XMEAS_30': 'Component B in Purge',
+            'XMEAS_31': 'Component C in Purge',
+            'XMEAS_32': 'Component D in Purge',
+            'XMEAS_33': 'Component E in Purge',
+            'XMEAS_34': 'Component F in Purge',
+            'XMEAS_35': 'Component G in Purge',
+            'XMEAS_36': 'Component H in Purge',
+            'XMEAS_37': 'Component D in Product',
+            'XMEAS_38': 'Component E in Product',
+            'XMEAS_39': 'Component F in Product',
+            'XMEAS_40': 'Component G in Product',
+            'XMEAS_41': 'Component H in Product',
+
+            # XMV 1-11: Manipulated variables (control inputs)
+            # These capture control system responses to faults
+            'XMV_1': 'D feed load',
+            'XMV_2': 'E feed load',
+            'XMV_3': 'A feed load',
+            'XMV_4': 'A and C feed load',
+            'XMV_5': 'Compressor recycle valve',
+            'XMV_6': 'Purge valve',
+            'XMV_7': 'Separator liquid load',
+            'XMV_8': 'Stripper liquid load',
+            'XMV_9': 'Stripper steam valve',
+            'XMV_10': 'Reactor coolant load',
+            'XMV_11': 'Condenser coolant load'
         }
         
         print("🌉 TEP-FaultExplainer Bridge initialized")
         print(f"📁 Monitoring: {self.live_data_file}")
         print(f"🔗 FaultExplainer: {self.faultexplainer_url}")
+        print(f"✅ Feature mapping: {len(self.variable_mapping)} features (22 XMEAS + 19 compositions + 11 XMV)")
     
     def check_faultexplainer_status(self):
         """Check if FaultExplainer backend is running"""
