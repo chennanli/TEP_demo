@@ -109,17 +109,31 @@ mkdir -p backend/logs
 
 print_status "Directories created"
 
-# Step 6: Check for .env file
+# Step 6: Setup .env file for API keys
 echo ""
-echo "Step 6: Checking configuration..."
+echo "Step 6: Setting up API keys..."
 
-if [ -f "backend/.env" ]; then
-    print_status ".env file exists"
+if [ -f ".env" ]; then
+    print_status ".env file already exists"
 else
-    print_warning ".env file not found (optional)"
-    echo "To use cloud LLMs (Claude, GPT), create backend/.env with:"
-    echo "  ANTHROPIC_API_KEY=your_key_here"
-    echo "  OPENAI_API_KEY=your_key_here"
+    if [ -f ".env.template" ]; then
+        print_warning ".env file not found, creating from template..."
+        cp .env.template .env
+        print_status "Created .env from template"
+        echo ""
+        echo "⚠️  IMPORTANT: Edit .env file and add your API keys:"
+        echo "  1. Open .env in a text editor"
+        echo "  2. Replace 'sk-ant-xxxxx-your-key-here' with your actual Anthropic API key"
+        echo "  3. Replace 'AIzaSyXXXXX-your-key-here' with your actual Google Gemini API key"
+        echo ""
+        echo "  Get API keys from:"
+        echo "  - Anthropic Claude: https://console.anthropic.com/settings/keys"
+        echo "  - Google Gemini: https://aistudio.google.com/apikey"
+        echo ""
+    else
+        print_error ".env.template not found!"
+        echo "Please create .env manually with your API keys"
+    fi
 fi
 
 # Step 7: Verify installation
@@ -155,18 +169,20 @@ echo "✅ Setup Complete!"
 echo "========================================"
 echo ""
 echo "Next steps:"
-echo "1. (Optional) Configure .env file in backend/"
+echo "1. ⚠️  IMPORTANT: Edit .env file and add your API keys (see above)"
 echo "2. Double-click START_ALL.command to start the system"
 echo "3. Open browser: http://127.0.0.1:9002"
+echo "4. Click '🚀 Ultra Start' button to start all services"
 echo ""
 echo "For help, see:"
-echo "  - docs/QUICK_START.md"
-echo "  - docs/TROUBLESHOOTING_REPORT_GEN.md"
+echo "  - README.md (Quick start guide)"
+echo "  - docs/ (Detailed documentation)"
 echo ""
 
-# Make START_ALL.command executable
+# Make startup scripts executable
 chmod +x START_ALL.command
-chmod +x RESTART_UNIFIED_CONSOLE.sh
+chmod +x STOP_ALL.command
+chmod +x scripts/*.command scripts/*.sh 2>/dev/null
 
 print_status "Startup scripts are now executable"
 
