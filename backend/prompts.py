@@ -154,6 +154,16 @@ Your task is to:
 3. **Ensure Deterministic Responses**:
     - Provide consistent and deterministic explanations for your choices every time you are run.
     - Base your reasoning strictly on the provided feature data and process knowledge.
+
+4. **Provide Final Summary and Recommendation**:
+   - After analyzing all root causes, you MUST provide a final summary.
+   - State which root cause is MOST LIKELY based on:
+     * Number of features explained (out of 6)
+     * Strength of causal connections
+     * Consistency with observed data
+   - Format: "Based on this analysis, Root Cause [X] is most likely because..."
+   - This summary is REQUIRED - do not skip it.
+
 **Instructions**:
 - Present your analysis in a clear, step-by-step manner.
 - Use technical language appropriate for a chemical engineer familiar with the TEP.

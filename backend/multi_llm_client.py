@@ -447,23 +447,11 @@ class MultiLLMClient:
         try:
             loop = asyncio.get_event_loop()
 
-            # 🔧 GEMINI-SPECIFIC: Add explicit summary instruction
-            # Gemini 2.5 Flash follows literal instructions and doesn't add implicit summaries
-            # Claude and LMStudio automatically add summaries, but Gemini needs explicit request
-            gemini_suffix = """
-
-IMPORTANT: After presenting all root causes, you MUST provide a final summary:
-- State which root cause is MOST LIKELY
-- Justify based on number of features explained (out of 6)
-- Format: "Based on this analysis, Root Cause [X] is most likely because..."
-"""
-
             # Combine system message and user prompt for Gemini
-            full_prompt = f"{system_message}\n\n{user_prompt}{gemini_suffix}"
+            full_prompt = f"{system_message}\n\n{user_prompt}"
 
             print(f"📤 Sending request to Gemini (model: {model_name})...")
             print(f"   - Prompt length: {len(full_prompt)} chars")
-            print(f"   - Added Gemini-specific summary instruction")
 
             # Use new SDK with timeout already configured in client
             response = await loop.run_in_executor(
