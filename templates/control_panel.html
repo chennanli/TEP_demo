@@ -1933,8 +1933,9 @@
             const limit = parseInt(document.getElementById('history-limit')?.value || 5);
 
             // 🔧 FIX: Use unified console proxy instead of direct backend call
-            // This ensures consistent routing and better error handling
-            fetch(`/api/backend/analysis/history?limit=${limit}`, {
+            // Add timestamp to bust any aggressive browser caching
+            const timestamp = Date.now();
+            fetch(`/api/backend/analysis/history?limit=${limit}&_t=${timestamp}`, {
                 cache: 'no-store'  // Prevent browser caching stale data
             })
                 .then(response => response.json())
