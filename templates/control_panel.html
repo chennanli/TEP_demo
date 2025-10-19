@@ -1928,7 +1928,11 @@
         function showAnalysisHistory() {
             const limit = parseInt(document.getElementById('history-limit')?.value || 5);
 
-            fetch(`http://127.0.0.1:8000/analysis/history?limit=${limit}`)
+            // 🔧 FIX: Use unified console proxy instead of direct backend call
+            // This ensures consistent routing and better error handling
+            fetch(`/api/backend/analysis/history?limit=${limit}`, {
+                cache: 'no-store'  // Prevent browser caching stale data
+            })
                 .then(response => response.json())
                 .then(data => {
                     const logView = document.getElementById('log-view');
