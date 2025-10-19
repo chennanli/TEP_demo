@@ -2345,9 +2345,17 @@ class UnifiedControlPanel:
                     except:
                         pass
 
+                # 🔧 NEW: Kill TEP Bridge (was missing - caused overnight charges!)
+                try:
+                    result = subprocess.run(['pkill', '-f', 'tep_faultexplainer_bridge'],
+                                          capture_output=True, text=True, timeout=5)
+                    print("✅ Killed TEP Bridge process")
+                except Exception as e:
+                    print(f"⚠️  TEP Bridge kill failed: {e}")
+
                 return jsonify({
                     'success': True,
-                    'message': 'Emergency shutdown completed - all processes stopped'
+                    'message': 'Emergency shutdown completed - all processes stopped including bridge'
                 })
 
             except Exception as e:

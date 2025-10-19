@@ -164,8 +164,11 @@ class TEPFaultExplainerBridge:
                         if result:
                             print(f"🎯 Analysis complete for step {data_point['step']}")
                 
-                # Wait before checking again (0.5s for ultra-fast real-time response)
-                time.sleep(0.5)  # 0.5s = 2x faster than 1s, reduces lag significantly
+                # Wait before checking again
+                # 🔧 OPTIMIZED: 2.0s (was 0.5s) - TEP data updates every ~5s, so 0.5s was too aggressive
+                # Reduces request volume by 75% (172,800 → 43,200 requests/day)
+                # Lower cost risk if backend runs accidentally overnight
+                time.sleep(2.0)  # 2s = good balance between responsiveness and efficiency
                 
             except KeyboardInterrupt:
                 print("\n🛑 Bridge stopped by user")
