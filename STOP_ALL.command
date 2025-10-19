@@ -28,6 +28,11 @@ if [ -f ".frontend.pid" ]; then
     rm .frontend.pid
 fi
 
+# 🔧 NEW: Kill TEP Bridge (this was missing!)
+echo ""
+echo "Stopping TEP Bridge..."
+pkill -f "tep_faultexplainer_bridge" && echo "✅ Stopped TEP Bridge" || echo "⚠️  TEP Bridge not running"
+
 # Kill by port (backup method)
 echo ""
 echo "Checking for remaining processes..."
