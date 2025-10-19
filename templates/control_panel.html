@@ -392,7 +392,7 @@
                 <div class="control-card">
                     <h4>📊 Data Analysis</h4>
                     <p>Download and review analysis history</p>
-                    <div style="display:flex; gap:8px; align-items:center; margin-top:6px">
+                    <div style="display:flex; gap:8px; align-items:center; margin-top:6px; flex-wrap:wrap;">
                         <label style="font-size:12px; color:#666">Show last</label>
                         <select id="history-limit" class="btn">
                             <option>5</option>
@@ -401,6 +401,11 @@
                         </select>
                         <button class="btn" onclick="showAnalysisHistory()">🔄 Load History</button>
                         <button class="btn" onclick="openAnalysisFolder()" style="background:#28a745;">📁 Browse RCA Files</button>
+                        <!-- 🔧 NEW: Auto-refresh toggle -->
+                        <label style="display:flex; align-items:center; gap:4px; font-size:12px; color:#666; cursor:pointer;">
+                            <input type="checkbox" id="auto-refresh-checkbox" onchange="toggleAutoRefresh(this.checked)" style="cursor:pointer;">
+                            Auto-refresh (30s)
+                        </label>
                     </div>
                     <p style="margin-top:6px; font-size:12px; color:#666">RCA logs auto-saved at backend/diagnostics/analysis_history/YYYY-MM-DD.md</p>
                     <!-- Container to display loaded analysis history -->
@@ -1894,6 +1899,31 @@
         // =========================================================================
         // Analysis History Functions
         // =========================================================================
+
+        // 🔧 NEW: Auto-refresh functionality for Load History
+        let autoRefreshInterval = null;
+        let autoRefreshEnabled = false;
+
+        function toggleAutoRefresh(enabled) {
+            autoRefreshEnabled = enabled;
+
+            if (enabled) {
+                console.log('✅ Load History auto-refresh enabled (30s interval)');
+                // Load immediately when enabled
+                showAnalysisHistory();
+                // Then set interval for recurring loads
+                autoRefreshInterval = setInterval(() => {
+                    console.log('🔄 Auto-refreshing Load History...');
+                    showAnalysisHistory();
+                }, 30000); // 30 seconds
+            } else {
+                console.log('⏸️ Load History auto-refresh disabled');
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            }
+        }
 
         function showAnalysisHistory() {
             const limit = parseInt(document.getElementById('history-limit')?.value || 5);

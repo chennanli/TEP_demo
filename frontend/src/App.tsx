@@ -512,6 +512,8 @@ export default function App() {
   };
   const [conversation, setConversation] = useState<ChatMessage[]>([intro_msg]);
   const [comparativeResults, setComparativeResults] = useState<any>(null);
+  // 🔧 NEW: Global pause state for stopping all auto-refresh timers
+  const [globalPause, setGlobalPause] = useState<boolean>(false);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   // const [conversation, setConversation] = useState<ChatMessage[]>([]);
 
@@ -532,6 +534,9 @@ export default function App() {
   const [lastAutoCheckTime, setLastAutoCheckTime] = useState<number>(0);
   const [pendingAnomalyData, setPendingAnomalyData] = useState<{ [key: string]: number[] } | null>(null);
 
+  // 🔧 NEW: Scroll position preservation
+  const scrollPositionRef = useRef<number>(0);
+
   const handleFileChange = (value: string | null) => {
     setSelectedFileId(fault_name.indexOf(value ?? fault_name[0]));
   };
@@ -551,6 +556,28 @@ export default function App() {
 
     return () => clearTimeout(autoSwitchTimer);
   }, []); // Run once on mount
+
+  // 🔧 NEW: Preserve scroll position across re-renders
+  useEffect(() => {
+    // Save scroll position before potential re-render
+    const handleScroll = () => {
+      scrollPositionRef.current = window.scrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // 🔧 NEW: Restore scroll position after currentRow updates
+  useEffect(() => {
+    if (scrollPositionRef.current > 0 && !globalPause) {
+      // Restore scroll position after React re-renders
+      window.scrollTo(0, scrollPositionRef.current);
+    }
+  }, [currentRow, globalPause]);
 
   // Load model status on component mount
   useEffect(() => {
@@ -973,7 +1000,15 @@ export default function App() {
       return;
     }
 
-    const checkInterval = 5000; // 5 seconds
+    // 🔧 UPDATED: Increased from 5s to 30s to reduce page refresh frequency
+    const checkInterval = 30000; // 30 seconds (was 5000)
+
+    // 🔧 NEW: Only run timer if global pause is not active
+    if (globalPause) {
+      console.log("⏸️ Auto-check paused due to global pause");
+      return; // Don't start timer if globally paused
+    }
+
     const timer = setInterval(async () => {
       const currentTime = Date.now();
 
@@ -1006,7 +1041,7 @@ export default function App() {
     }, checkInterval);
 
     return () => clearInterval(timer);
-  }, [autoAnalysisEnabled, pendingAnomalyData, lastAutoCheckTime, currentFaultId, selectedFileId]);
+  }, [autoAnalysisEnabled, pendingAnomalyData, lastAutoCheckTime, currentFaultId, selectedFileId, globalPause]);
 
   return (
     <div>
@@ -1098,6 +1133,22 @@ export default function App() {
                     {autoAnalysisEnabled ? "Auto" : "Manual"}
                   </Badge>
                 </Group>
+
+                {/* 🔧 NEW: Global Pause Button - Stops all auto-refresh timers */}
+                <Tooltip label={globalPause ? "Resume all updates and auto-refresh timers" : "Pause all updates to read RCA analysis without page jumping"}>
+                  <Button
+                    onClick={() => {
+                      setGlobalPause(!globalPause);
+                      console.log(`${!globalPause ? '⏸️ Global pause ON - All updates stopped' : '▶️ Global pause OFF - Updates resumed'}`);
+                    }}
+                    color={globalPause ? "green" : "orange"}
+                    size="sm"
+                    variant="filled"
+                    leftSection={globalPause ? <IconPlayerPlayFilled size={16} /> : <IconPlayerPauseFilled size={16} />}
+                  >
+                    {globalPause ? "Resume" : "Pause All"}
+                  </Button>
+                </Tooltip>
 
                 <Divider orientation="vertical" />
 
