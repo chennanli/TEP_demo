@@ -10,7 +10,7 @@
     "anthropic": {
       "api_key": "${ANTHROPIC_API_KEY}",
       "model_name": "claude-3-7-sonnet-20250219",
-      "enabled": true,
+      "enabled": false,
       "premium": true,
       "description": "Anthropic Claude 3.7 Sonnet - Latest model, high-quality reasoning, best for complex analysis"
     },
