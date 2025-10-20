@@ -92,29 +92,74 @@ GEMINI_API_KEY=AIzaSyXXXXX-REDACTED-XXXXX      # Your real key
 
 ---
 
-### Step 4: Run Setup Script
+### Step 4: Install Build Tools (Required!)
+
+**IMPORTANT**: Before running setup, install Xcode Command Line Tools (includes GCC compiler):
 
 ```bash
-./SETUP_FIRST_TIME.command
+xcode-select --install
 ```
 
-This will:
-- ✅ Check Python 3.12+ (installs if needed)
-- ✅ Check Node.js (installs if needed)
-- ✅ Install Python packages (5-10 minutes)
-- ✅ Install frontend packages (3-5 minutes)
-- ✅ Create necessary directories
-- ✅ Verify your .env file
+**A popup will appear** - click "Install" and wait 5-10 minutes.
+
+**Why needed?** Some Python packages need to compile C/C++ code during installation.
+
+---
+
+### Step 5: Install Python 3.12
+
+**Check Python version**:
+```bash
+python3 --version
+```
+
+**If Python 3.9 or older**, install Python 3.12:
+```bash
+# Install via Homebrew
+brew install python@3.12
+
+# Verify
+python3.12 --version
+# Should show: Python 3.12.x
+```
+
+---
+
+### Step 6: Setup Virtual Environment & Install Dependencies
+
+**IMPORTANT**: Don't use the setup scripts yet - they may have issues. Do this manually:
+
+```bash
+cd /Users/[your_name]/Desktop/LLM_Project/TEP_demo
+
+# Create virtual environment with Python 3.12
+python3.12 -m venv .venv
+
+# Activate it
+source .venv/bin/activate
+
+# Upgrade pip
+pip install --upgrade pip
+
+# Install Python packages (5-10 minutes)
+pip install -r requirements.txt
+
+# Install frontend packages (3-5 minutes)
+cd frontend
+npm install
+cd ..
+
+# Create .env
+cp .env.template .env
+```
 
 **Expected output:**
 ```
-✓ Python found: Python 3.12.x
-✓ Node.js found: v20.x.x
-✓ Python dependencies installed
-✓ Frontend dependencies installed
-✓ Directories created
-✓ .env file exists
-✅ Setup Complete!
+✓ Virtual environment created: .venv/
+✓ pip upgraded
+✓ Python packages installed (fastapi, anthropic, genai, etc.)
+✓ Frontend packages installed
+✓ .env file created
 ```
 
 ---
@@ -188,12 +233,139 @@ This kills:
 
 ## 🐛 Troubleshooting
 
-### Problem: "Python 3.12 not found"
+### Problem: "Cannot execute .command files" or "Move to Trash"
+
+**Cause**: Files copied without executable permissions
 
 **Solution:**
 ```bash
-brew install python@3.12
+cd /Users/[your_name]/Desktop/LLM_Project/TEP_demo
+
+# Make files executable
+chmod +x *.command *.sh
+
+# OR just use bash to run them
+bash START_ALL.command
 ```
+
+---
+
+### Problem: ".command files not working" - Better: Use git clone
+
+**Issue**: Copying the folder loses file permissions
+
+**Solution**: Delete copied folder and clone from GitHub instead:
+```bash
+rm -rf /Users/[your_name]/Desktop/LLM_Project/TEP_demo
+cd /Users/[your_name]/Desktop/LLM_Project
+git clone https://github.com/chennanli/TEP_demo.git
+cd TEP_demo
+```
+
+Git preserves all permissions correctly! ✅
+
+---
+
+### Problem: "GCC compiler needed" or "xcode-select needed"
+
+**Cause**: Missing C/C++ compiler for Python packages
+
+**Solution:**
+```bash
+xcode-select --install
+```
+
+Click "Install" in popup, wait 5-10 minutes. This is **required** for scientific Python packages.
+
+---
+
+### Problem: "Python 3.12 not found" (have Python 3.9)
+
+**Cause**: Wrong Python version
+
+**Solution:**
+```bash
+# Install Python 3.12
+brew install python@3.12
+
+# Verify
+python3.12 --version
+```
+
+**IMPORTANT**: Python 3.9 is TOO OLD. Must use Python 3.12!
+
+---
+
+### Problem: "Failed to install Python dependencies"
+
+**Cause**: Using system Python or wrong version
+
+**Solution:**
+```bash
+# Use Python 3.12 explicitly
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+---
+
+### Problem: "config.json file not found"
+
+**Cause**: Old repo clone before config.json was added
+
+**Solution:**
+```bash
+cd /Users/[your_name]/Desktop/LLM_Project/TEP_demo
+git pull origin main
+ls -la config/config.json  # Should exist now
+```
+
+---
+
+### Problem: "Backend failed to start - unknown error"
+
+**Causes & Solutions**:
+
+**1. Port 8000 already in use**:
+```bash
+lsof -ti:8000
+kill -9 $(lsof -ti:8000)
+```
+
+**2. Missing dependencies**:
+```bash
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**3. .env file missing**:
+```bash
+cp .env.template .env
+open -a TextEdit .env
+# Add API keys
+```
+
+**4. See actual error**:
+```bash
+source .venv/bin/activate
+cd backend
+python app.py
+# Copy the error message
+```
+
+---
+
+### Problem: "DCS Screen shows 'waiting for live data'"
+
+**Cause**: Simulation not started
+
+**Solution:**
+1. In browser control panel, click **"🚀 Ultra Start"**
+2. Wait 10 seconds for all services to start
+3. In DCS Screen tab, select **"Live (stream)"** from dropdown
+4. Data should flow!
 
 ---
 
