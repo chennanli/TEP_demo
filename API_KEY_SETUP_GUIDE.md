@@ -116,8 +116,8 @@ cat .env
 **Expected output**:
 ```
 # API Keys - NEVER commit this file to GitHub!
-ANTHROPIC_API_KEY=sk-ant-api03-XXXXX-REDACTED-XXXXX...  (your real key)
-GEMINI_API_KEY=AIzaSyXXXXX-REDACTED-XXXXX...          (your real key)
+ANTHROPIC_API_KEY=sk-ant-api03-XXXXX-your-key-here-XXXXX
+GEMINI_API_KEY=AIzaSyXXXXX-your-key-here-XXXXX
 ```
 
 ### Step 8: Start the System

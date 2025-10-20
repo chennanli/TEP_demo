@@ -84,8 +84,8 @@ GEMINI_API_KEY=AIzaSyXXXXX-your-key-here
 
 **After** (.env):
 ```bash
-ANTHROPIC_API_KEY=sk-ant-api03-XXXXX-REDACTED-XXXXX...  # Your real key
-GEMINI_API_KEY=AIzaSyXXXXX-REDACTED-XXXXX      # Your real key
+ANTHROPIC_API_KEY=sk-ant-api03-YOUR-KEY-HERE-XXXXX  # Your real key
+GEMINI_API_KEY=AIzaSyXXXXX-YOUR-KEY-HERE-XXXXX      # Your real key
 ```
 
 **Save and close the file.**

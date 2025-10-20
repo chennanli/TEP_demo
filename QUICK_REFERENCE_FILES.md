@@ -27,8 +27,8 @@ TEP_demo/
 
 ### What's inside:
 ```bash
-ANTHROPIC_API_KEY=sk-ant-api03-jOts8q_7Wvb...
-GEMINI_API_KEY=AIzaSyXXXXX-REDACTED-XXXXX...
+ANTHROPIC_API_KEY=sk-ant-api03-XXXXX-your-key-here-XXXXX
+GEMINI_API_KEY=AIzaSyXXXXX-your-key-here-XXXXX
 ```
 
 ### When to edit:
