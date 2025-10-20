@@ -1272,7 +1272,9 @@ function showAnalysisHistory() {
 
     showMessage('Loading analysis history...', 'info');
 
-    fetch('/api/backend/analysis/history?limit=' + limit)
+    // Add timestamp to prevent browser caching
+    var timestamp = new Date().getTime();
+    fetch('/api/backend/analysis/history?limit=' + limit + '&_=' + timestamp)
         .then(function(r) {
             console.log('Analysis history response status:', r.status);
             return r.json();
