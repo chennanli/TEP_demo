@@ -471,26 +471,30 @@ class MultiLLMClient:
                 raise Exception("Gemini timeout after 180 seconds")
             raise Exception(f"Gemini failed: {error_msg}")
 
-    def format_comparative_results(self, results: Dict[str, Any], feature_comparison: str = "") -> Dict[str, Any]:
-        """Format results for frontend display"""
+    def format_comparative_results(self, results: Dict[str, Any], feature_comparison: str = "", sensor_data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Format results for frontend display with optional sensor data"""
         formatted = {
             "timestamp": datetime.now().isoformat(),
             "feature_analysis": feature_comparison,
             "llm_analyses": {},
             "performance_summary": {}
         }
-        
+
+        # Include sensor data if provided
+        if sensor_data:
+            formatted["sensor_data"] = sensor_data
+
         for model_name, result in results.get("results", {}).items():
             formatted["llm_analyses"][model_name] = {
                 "analysis": result.get("analysis", ""),
                 "response_time": result.get("response_time", 0),
                 "status": result.get("status", "unknown")
             }
-            
+
             formatted["performance_summary"][model_name] = {
                 "response_time": result.get("response_time", 0),
                 "word_count": len(result.get("analysis", "").split())
             }
-        
+
         return formatted
 

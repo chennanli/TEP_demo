@@ -706,7 +706,7 @@ async def ingest_live_point(req: IngestRequest):
                                 # Create empty results for timeout
                                 llm_results = {}
 
-                            formatted = multi_llm_client.format_comparative_results(results=llm_results, feature_comparison=comparison)
+                            formatted = multi_llm_client.format_comparative_results(results=llm_results, feature_comparison=comparison, sensor_data=feature_series)
 
                             # 🔧 FIX: 保存原始LLM分析到各自的MD文件
                             # Removed AI Agent enhancement to speed up response time
@@ -1846,10 +1846,11 @@ async def explain(request: ExplainationRequest):
             fault_data=fault_data
         )
 
-        # Format comparative results
+        # Format comparative results with sensor data
         formatted_results = multi_llm_client.format_comparative_results(
             results=llm_results,
-            feature_comparison=comparison_result
+            feature_comparison=comparison_result,
+            sensor_data=request.data  # Include all sensor data in snapshot
         )
 
         # 🔍 DEBUG: Log formatted results structure
@@ -1941,7 +1942,8 @@ async def explain_gemini(request: ExplainationRequest):
 
         formatted_results = multi_llm_client.format_comparative_results(
             results=result,
-            feature_comparison=comparison_result
+            feature_comparison=comparison_result,
+            sensor_data=request.data  # Include all sensor data in snapshot
         )
 
         return JSONResponse(content=formatted_results)
@@ -2156,13 +2158,21 @@ async def chat_endpoint(request: dict):
 
                 # Add sensor data summary (if available in snapshot)
                 if 'sensor_data' in snapshot:
-                    sensor_data_summary = "\n**Sensor Data Summary**:\n"
+                    sensor_data_summary = "\n**Sensor Data Summary** (52 sensor features captured at fault time):\n"
                     sensor_data = snapshot['sensor_data']
-                    # Show key variables
-                    for var_name, values in list(sensor_data.items())[:10]:  # First 10 variables
-                        if isinstance(values, list) and values:
+
+                    # Show all available sensor variables with statistics
+                    sensor_count = 0
+                    for var_name, values in sensor_data.items():
+                        if isinstance(values, list) and len(values) > 0:
                             avg_val = sum(values) / len(values)
-                            sensor_data_summary += f"- {var_name}: avg={avg_val:.2f}\n"
+                            min_val = min(values)
+                            max_val = max(values)
+                            # Show variable with min, avg, max for better context
+                            sensor_data_summary += f"- {var_name}: min={min_val:.2f}, avg={avg_val:.2f}, max={max_val:.2f}\n"
+                            sensor_count += 1
+
+                    sensor_data_summary += f"\n(Total {sensor_count} sensor features captured)\n"
                     context += sensor_data_summary
 
                 logger.info(f"📋 Loaded context for analysis {analysis_id} ({len(context)} chars)")
