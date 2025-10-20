@@ -20,6 +20,7 @@ import re
 from collections import deque
 import numpy as np
 from flask import Flask, render_template, jsonify, request, redirect, url_for, send_from_directory, Response, stream_with_context
+from flask_cors import CORS
 import requests
 import queue
 
@@ -1261,6 +1262,10 @@ class UnifiedControlPanel:
 
     def __init__(self):
         self.app = Flask(__name__)
+
+        # Enable CORS for React frontend (port 5173)
+        CORS(self.app, resources={r"/api/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}})
+
         self.bridge = TEPDataBridge()
         self.baseline_data = None  # Will be loaded when user clicks "Load Baseline"
 
