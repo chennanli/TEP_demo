@@ -6,7 +6,36 @@ A unified control system for TEP simulation, real-time anomaly detection, and AI
 
 ---
 
-## 🚀 Quick Start
+## 🐳 **NEW: Docker Deployment (Recommended)**
+
+**One-command deployment for Mac, Windows, and Linux!**
+
+```bash
+# 1. Configure API keys
+cp .env.template .env && nano .env
+
+# 2. Start everything
+docker-compose up -d
+
+# 3. Access system
+open http://localhost:5173
+```
+
+**📚 Documentation:**
+- **Quick Start**: [EXECUTE_NOW.md](EXECUTE_NOW.md) - Copy-paste commands
+- **Detailed Guide**: [START_HERE.md](START_HERE.md) - Step-by-step instructions
+- **Full Docs**: [README_DOCKER.md](README_DOCKER.md) - Complete reference
+
+**Benefits:**
+- ✅ Works on Mac, Windows, Linux
+- ✅ No Python/Node.js installation needed
+- ✅ No virtual environment setup
+- ✅ One command to start/stop
+- ✅ Easy coworker deployment
+
+---
+
+## 🚀 Traditional Setup (Alternative)
 
 ### **First Time Setup**
 
