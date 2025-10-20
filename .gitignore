@@ -137,6 +137,7 @@ data/simulation_results/*.dat
 !backend/data/normal_baseline.csv
 !backend/data/live_fault0.csv
 !backend/stats/features_mean_std.csv
+!frontend/public/fault*.csv
 !frontend/public/images/tep_flowsheet.png
 
 # Large archive files
