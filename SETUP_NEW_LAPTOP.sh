@@ -138,22 +138,18 @@ source .venv/bin/activate
 echo "📦 Upgrading pip..."
 pip install --upgrade pip --quiet
 
-# Install all dependencies with EXACT versions for reproducibility
-echo "📦 Installing dependencies with exact versions..."
-echo "   (Using requirements-frozen.txt for identical package versions)"
+# Install all dependencies
+echo "📦 Installing Python dependencies..."
+echo "   (Using requirements.txt)"
 echo ""
 
-# Use frozen requirements for exact same versions as development environment
-pip install -r requirements-frozen.txt --quiet
+# Install from requirements.txt
+pip install -r requirements.txt --quiet
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to install Python dependencies"
-    echo "   Falling back to requirements.txt..."
-    pip install -r requirements.txt
-    if [ $? -ne 0 ]; then
-        echo "❌ Installation failed completely"
-        exit 1
-    fi
+    echo "   Try manually: pip install -r requirements.txt"
+    exit 1
 fi
 
 echo ""
