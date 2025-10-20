@@ -1045,39 +1045,84 @@ def get_latest_analysis():
 
 @app.get("/analysis/history")
 def analysis_history(limit: int = 10):
-    """Return last N items (from disk if available, else memory)."""
-    items = []
+    """
+    Return last N items with smart loading strategy:
+    1. First load from in-memory (real-time, most recent)
+    2. If not enough, supplement from disk log (historical)
+    3. Combine both to reach requested limit
+    """
+    import json as _json
+
+    # STEP 1: Get from in-memory queue (most recent, real-time)
+    memory_items = list(_analysis_history)  # Max 6 items by default (deque maxlen=6)
+
+    # STEP 2: If we have enough in memory, return them
+    if len(memory_items) >= limit:
+        logger.info(f"📊 Load History: Returning {limit} items from memory (have {len(memory_items)} total)")
+        return {"items": memory_items[-limit:]}
+
+    # STEP 3: Need more items - read from disk to supplement
+    disk_items = []
+    needed = limit - len(memory_items)
+
+    logger.info(f"📊 Load History: Have {len(memory_items)} in memory, need {needed} more from disk")
+
     try:
         if os.path.exists(_history_file):
-            # read the last N lines efficiently
-            import io
+            # Get IDs of items already in memory to avoid duplicates
+            memory_ids = {str(item.get('id', '')) for item in memory_items if item.get('id')}
+
+            # Read last (needed * 2) lines from disk to ensure we get enough unique items
+            # (multiply by 2 as buffer in case some are duplicates)
+            read_limit = needed * 2
+
             with open(_history_file, 'rb') as f:
                 f.seek(0, os.SEEK_END)
                 size = f.tell()
                 block = 4096
                 buf = b""
                 lines = []
-                while size > 0 and len(lines) <= limit:
+
+                # Read file backwards until we have enough lines
+                while size > 0 and len(lines) <= read_limit:
                     step = block if size - block > 0 else size
                     size -= step
                     f.seek(size)
                     buf = f.read(step) + buf
                     lines = buf.split(b"\n")
+
                 raw = [x for x in lines if x.strip()]
-                import json as _json
-                # Parse each line safely, skip any that fail
-                items = []
-                for line in raw[-limit:]:
+
+                # Parse each line, skip duplicates and malformed entries
+                for line in reversed(raw):  # Read newest first
+                    if len(disk_items) >= needed:
+                        break
+
                     try:
-                        if line.strip():  # Only parse non-empty lines
-                            items.append(_json.loads(line))
+                        if line.strip():
+                            item = _json.loads(line)
+                            item_id = str(item.get('id', ''))
+
+                            # Skip if already in memory
+                            if item_id and item_id not in memory_ids:
+                                disk_items.insert(0, item)  # Insert at beginning to maintain order
                     except _json.JSONDecodeError:
                         continue  # Skip malformed lines
+
+            logger.info(f"📊 Load History: Loaded {len(disk_items)} unique items from disk")
         else:
-            items = list(_analysis_history)[-limit:]
+            logger.info(f"📊 Load History: No disk log file found at {_history_file}")
+
     except Exception as e:
-        return {"status":"error","error":str(e),"items":list(_analysis_history)[-limit:]}
-    return {"items": items}
+        logger.warning(f"⚠️ Failed to read disk history: {e}")
+
+    # STEP 4: Combine memory (newest) + disk (older historical)
+    # Memory items are already the most recent, disk items supplement from history
+    combined = memory_items + disk_items[:needed]
+
+    logger.info(f"📊 Load History: Returning {len(combined)} items ({len(memory_items)} from memory + {len(disk_items[:needed])} from disk)")
+
+    return {"items": combined[-limit:]}
 
 @app.get("/analysis/download/{date}")
 def download_analysis_by_date(date: str):
