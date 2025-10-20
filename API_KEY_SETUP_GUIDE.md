@@ -129,8 +129,8 @@ GEMINI_API_KEY=AIzaSyXXXXX-your-key-here-XXXXX
 **Check terminal output for**:
 ```
 ✅ Loaded environment variables from .env
-✅ Anthropic API key: sk-ant-api03-jOts8... (first 20 chars)
-✅ Gemini API key: AIzaSyCZX5u... (first 15 chars)
+✅ Anthropic API key: sk-ant-api03-XXXXX... (first 20 chars masked)
+✅ Gemini API key: AIzaSyXXXXX... (first 15 chars masked)
 ```
 
 ---
