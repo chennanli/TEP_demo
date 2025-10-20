@@ -790,6 +790,32 @@ function handleSSEEvent(data) {
     }
 }
 
+function updateDataFlowDisplay(eventData) {
+    console.log('📊 Updating data flow display:', eventData);
+
+    // Update anomaly detection panel with real-time PCA stats
+    if (eventData && eventData.pca_stats) {
+        var pcaStatus = document.getElementById('monitor-pca-status');
+        var pcaTime = document.getElementById('monitor-pca-time');
+        var anomalyScore = document.getElementById('monitor-anomaly-score');
+
+        if (pcaStatus) {
+            var isAnomaly = eventData.pca_stats.is_anomaly || false;
+            pcaStatus.textContent = isAnomaly ? '🚨 ANOMALY' : '✅ Normal';
+            pcaStatus.style.color = isAnomaly ? '#e74c3c' : '#28a745';
+        }
+
+        if (pcaTime) {
+            pcaTime.textContent = new Date().toLocaleTimeString();
+        }
+
+        if (anomalyScore) {
+            var t2Score = eventData.pca_stats.t2_stat || 0;
+            anomalyScore.textContent = t2Score.toFixed(2);
+        }
+    }
+}
+
 function updateLLMStatus(model, status, data) {
     console.log('🤖 LLM status update:', model, status, data);
 
