@@ -219,13 +219,12 @@ test_*.html
 test_*.json
 control_panel_*.js
 
-# One-time setup and export scripts
+# One-time setup and export scripts (temporary/debug scripts only)
 export_*.py
-setup_*.sh
-start_*.sh
 push_to_github.sh
 reset_and_recommit.sh
 clean_repo.sh
+# NOTE: SETUP_NEW_LAPTOP.sh and SETUP_FIRST_TIME.command are KEPT (needed for distribution)
 
 # Generated data files (keep structure, ignore content)
 tep_simulation_fault_*.csv
@@ -241,7 +240,6 @@ requirements-frozen.txt
 *_backup_*.py
 *.backup_*
 PORTABILITY.md
-SETUP_NEW_LAPTOP.sh
 
 # Redundant documentation
 docs/conversation_history*.md
