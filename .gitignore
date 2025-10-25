@@ -281,3 +281,6 @@ backend/verify_config.sh
 *_test.sh
 *verify*.sh
 .temp/
+
+# Video recording scripts and guides (personal use only)
+recording/
