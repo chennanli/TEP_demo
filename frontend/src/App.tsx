@@ -1161,32 +1161,8 @@ export default function App() {
                 )}
               </Group>
 
-              {/* Right side: Live controls + Claude toggle */}
+              {/* Right side: Smart Analysis Toggle */}
               <Group align="center" gap="sm" wrap="nowrap">
-                <Select
-                  data={[{value:'Replay',label:'Replay (CSV)'},{value:'Live',label:'Live (stream)'}]}
-                  value={dataSource}
-                  onChange={(v)=>{
-                    const newSource = (v as 'Replay'|'Live')||'Replay';
-                    setDataSource(newSource);
-                    // 🔧 FIX: Reset cumulative time and data when switching modes
-                    if (newSource === 'Live') {
-                      setLiveDataStarted(false); // Will trigger reset on first live data
-                    } else {
-                      setT2_stat([]); // Clear for replay mode
-                      setCumulativeDataPoints(0); // Reset time counter
-                    }
-                  }}
-                  miw="160px"
-                />
-                <Button size="xs" onClick={()=>{
-                  setDataSource('Live');
-                  setLiveDataStarted(false); // Will trigger reset on first live data
-                  setCumulativeDataPoints(0); // 🔧 FIX: Reset time counter
-                }}>
-                  Use Live
-                </Button>
-
                 {/* 🎯 Smart Analysis Toggle */}
                 <Group align="center" gap="xs" wrap="nowrap">
                   <Checkbox

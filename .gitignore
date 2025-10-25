@@ -284,3 +284,33 @@ backend/verify_config.sh
 
 # Video recording scripts and guides (personal use only)
 recording/
+
+# ========================================
+# ROOT-LEVEL DOCUMENTATION CLEANUP
+# ========================================
+
+# All documentation MD files should be in docs/ folder
+# Only keep README.md, README_DOCKER.md, and LICENSE in root
+*_GUIDE.md
+*_SUMMARY.md
+*_INSTRUCTIONS.md
+*_SETUP.md
+*_STRATEGY.md
+*_COMPLETE*.md
+*_IMPLEMENTATION*.md
+*_DEPLOYMENT*.md
+*_REFERENCE*.md
+*_FIX*.md
+*_TESTING*.md
+CHECKLIST.md
+EXECUTE_NOW.md
+START_HERE.md
+FOR_YOUR_*.md
+DOWNLOAD_FROM_*.md
+COPY_PASTE_*.md
+
+# Setup and test scripts should be in docs/ or scripts/
+SETUP_*.command
+SETUP_*.sh
+test-*.sh
+*_test.sh
