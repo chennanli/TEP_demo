@@ -35,9 +35,9 @@ export default function HistoryPage() {
     return {
       ...item,
       time: timeLabel,          // Real simulation time instead of step count
-      t2_stat: normalData,      // Green area - only when normal
-      anomaly: anomalyData,     // Red area - only when anomaly
-      original_t2: item.t2_stat, // Keep original value for reference
+      t2_stat: parseFloat(normalData.toFixed(1)),      // 🔧 FIX: Round to 1 decimal - Green area (normal)
+      anomaly: parseFloat(anomalyData.toFixed(1)),     // 🔧 FIX: Round to 1 decimal - Red area (anomaly)
+      original_t2: parseFloat(item.t2_stat.toFixed(1)), // 🔧 FIX: Round original value
       simulation_minutes: simulationMinutes, // For tooltip
     };
   });
@@ -54,7 +54,10 @@ export default function HistoryPage() {
         h={300}
         data={transformedData}
         dataKey="time"
-        yAxisProps={{ domain: [0, 100] }}
+        yAxisProps={{
+          domain: [0, 100],
+          tickFormatter: (value: number) => value.toFixed(1) // 🔧 FIX: Round Y-axis to 1 decimal
+        }}
         yAxisLabel="Anomaly Score (0-100 scale)"
         xAxisLabel="Time (each step = 3 min in reality)"
         xAxisProps={{

@@ -140,17 +140,20 @@ export default function DataPage() {
       <SimpleGrid type="container" cols={3}>
         {sortedDataPoints.map(([fieldName, values]) => {
           // console.log(values);
-          const timeAxis = fullDataPoints.time.map((item) => {
-            const date = new Date(
-              startTime.getTime() + (item * 3 * 60000) / 0.05
-            );
-            return date.getHours() + ":" + date.getMinutes();
+          // 🔧 FIX: Use same time calculation as Anomaly Detection (each step = 3 minutes)
+          const timeAxis = fullDataPoints.time.map((item, index) => {
+            // Each data point represents 3 minutes of simulation time
+            const simulationMinutes = (index + 1) * 3;
+            const hours = Math.floor(simulationMinutes / 60);
+            const minutes = simulationMinutes % 60;
+            // Format: "3m", "6m", "1h00m", "1h30m", etc.
+            return hours > 0 ? `${hours}h${minutes.toString().padStart(2, '0')}m` : `${minutes}m`;
           });
 
           // Get operating range for this parameter
           const range = TEP_RANGES[fieldName];
           const chartData = values.map((item, idx) => ({
-            data: item,
+            data: parseFloat(item.toFixed(1)), // 🔧 FIX: Round to 1 decimal place
             time: timeAxis[idx],
             // Add reference lines if range exists
             ...(range && {
@@ -206,7 +209,10 @@ export default function DataPage() {
                 data={chartData}
                 dataKey="time"
                 yAxisLabel={columnFilterUnits[fieldName]}
-                yAxisProps={yAxisDomain ? { domain: yAxisDomain } : undefined}
+                yAxisProps={{
+                  ...(yAxisDomain ? { domain: yAxisDomain } : {}),
+                  tickFormatter: (value: number) => value.toFixed(1) // 🔧 FIX: Round Y-axis to 1 decimal
+                }}
                 series={series}
                 curveType="step"
                 tickLine="x"
