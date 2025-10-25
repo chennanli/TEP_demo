@@ -142,8 +142,10 @@ export default function DataPage() {
           // console.log(values);
           // 🔧 FIX: Use cumulative time from data (each step = 3 minutes)
           const timeAxis = fullDataPoints.time.map((cumulativeTime) => {
+            // 🔧 FIX: Round to integer to avoid floating point issues (0.15 -> 0, 1.0 -> 1)
+            const cumulativeInt = Math.round(Number(cumulativeTime));
             // Each data point represents 3 minutes of simulation time
-            const simulationMinutes = cumulativeTime * 3;
+            const simulationMinutes = cumulativeInt * 3;
             const hours = Math.floor(simulationMinutes / 60);
             const minutes = simulationMinutes % 60;
             // Format: "3m", "6m", "1h00m", "1h30m", etc.

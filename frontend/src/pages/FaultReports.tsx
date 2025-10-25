@@ -27,7 +27,8 @@ export default function HistoryPage() {
     const anomalyData = item.anomaly ? cappedT2 : 0;
 
     // 🔧 FIX: Use cumulative time from data instead of array index
-    const simulationMinutes = (item.cumulativeTime || 0) * 3;
+    const cumulativeInt = Math.round(item.cumulativeTime || 0); // Round to integer
+    const simulationMinutes = cumulativeInt * 3;
     const hours = Math.floor(simulationMinutes / 60);
     const minutes = simulationMinutes % 60;
     const timeLabel = hours > 0 ? `${hours}h${minutes.toString().padStart(2, '0')}m` : `${minutes}m`;

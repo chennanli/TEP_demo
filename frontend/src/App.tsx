@@ -947,42 +947,51 @@ export default function App() {
 
   useEffect(() => {
     if (currentRow) {
-      // 🔧 FIX: Increment cumulative time counter
-      setCumulativeDataPoints(prev => prev + 1);
+      // 🔧 FIX: Increment cumulative time counter FIRST
+      setCumulativeDataPoints(prev => {
+        const newCount = prev + 1;
 
-      setDataPoints((prevDataPoints) => {
-        const newDataPoints = { ...prevDataPoints };
-        for (const [key, value] of Object.entries(currentRow)) {
-          if (!newDataPoints[key]) {
-            newDataPoints[key] = [];
-          }
-          const numValue = parseFloat(value); // Convert the string value to a number
-          if (!isNaN(numValue)) {
-            // 🔧 FIX: Keep last 500 points instead of 30 (same as preloaded data)
-            newDataPoints[key] = [...newDataPoints[key], numValue].slice(-500);
-          }
-        }
-        // 🔧 FIX: Store cumulative time in the 'time' array
-        if (!newDataPoints['time']) {
-          newDataPoints['time'] = [];
-        }
-        newDataPoints['time'] = [...newDataPoints['time'], cumulativeDataPoints].slice(-500);
+        // Update data points with new cumulative time
+        setDataPoints((prevDataPoints) => {
+          const newDataPoints = { ...prevDataPoints };
+          for (const [key, value] of Object.entries(currentRow)) {
+            // 🔧 FIX: Skip CSV 'time' column - we use cumulative time instead
+            if (key === 'time') continue;
 
-        return newDataPoints;
+            if (!newDataPoints[key]) {
+              newDataPoints[key] = [];
+            }
+            const numValue = parseFloat(value); // Convert the string value to a number
+            if (!isNaN(numValue)) {
+              // 🔧 FIX: Keep last 300 points (300 * 3min = 900min = 15h)
+              newDataPoints[key] = [...newDataPoints[key], numValue].slice(-300);
+            }
+          }
+          // 🔧 FIX: Store cumulative time (keep as number, will format for display)
+          if (!newDataPoints['time']) {
+            newDataPoints['time'] = [];
+          }
+          newDataPoints['time'] = [...newDataPoints['time'], newCount].slice(-300);
+
+          return newDataPoints;
+        });
+
+        return newCount;
       });
+      // Update T2 stat with new cumulative time
       setT2_stat((data) => {
         if ("t2_stat" in currentRow && "anomaly" in currentRow) {
           const anomalyVal = String((currentRow as any).anomaly).toLowerCase() === "true";
 
-          // 🔧 FIX: Keep last 500 data points (same as DCS Screen)
+          // 🔧 FIX: Keep last 300 data points (same as DCS Screen)
           const newData = [
             ...data,
             {
               t2_stat: Number(currentRow.t2_stat),
               anomaly: anomalyVal,
-              cumulativeTime: cumulativeDataPoints, // Store cumulative time
+              cumulativeTime: newCount, // Use the new count
             },
-          ].slice(-500);
+          ].slice(-300);
 
           return newData;
         } else {
