@@ -140,10 +140,10 @@ export default function DataPage() {
       <SimpleGrid type="container" cols={3}>
         {sortedDataPoints.map(([fieldName, values]) => {
           // console.log(values);
-          // 🔧 FIX: Use same time calculation as Anomaly Detection (each step = 3 minutes)
-          const timeAxis = fullDataPoints.time.map((item, index) => {
+          // 🔧 FIX: Use cumulative time from data (each step = 3 minutes)
+          const timeAxis = fullDataPoints.time.map((cumulativeTime) => {
             // Each data point represents 3 minutes of simulation time
-            const simulationMinutes = (index + 1) * 3;
+            const simulationMinutes = cumulativeTime * 3;
             const hours = Math.floor(simulationMinutes / 60);
             const minutes = simulationMinutes % 60;
             // Format: "3m", "6m", "1h00m", "1h30m", etc.

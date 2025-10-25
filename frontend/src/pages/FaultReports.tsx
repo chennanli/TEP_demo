@@ -18,7 +18,7 @@ export default function HistoryPage() {
   // Debug: Log data updates
   console.log(`[T2 Chart] Data points: ${t2_stat.length}, Latest:`, t2_stat.slice(-3));
 
-  const transformedData = t2_stat.map((item, index) => {
+  const transformedData = t2_stat.map((item) => {
     // Cap T² values at 100 for display, but keep original for tooltip
     const cappedT2 = Math.min(item.t2_stat, 100);
 
@@ -26,15 +26,15 @@ export default function HistoryPage() {
     const normalData = item.anomaly ? 0 : cappedT2;
     const anomalyData = item.anomaly ? cappedT2 : 0;
 
-    // Convert time steps to actual simulation time (each step = 3 minutes)
-    const simulationMinutes = (index + 1) * 3;
+    // 🔧 FIX: Use cumulative time from data instead of array index
+    const simulationMinutes = (item.cumulativeTime || 0) * 3;
     const hours = Math.floor(simulationMinutes / 60);
     const minutes = simulationMinutes % 60;
     const timeLabel = hours > 0 ? `${hours}h${minutes.toString().padStart(2, '0')}m` : `${minutes}m`;
 
     return {
       ...item,
-      time: timeLabel,          // Real simulation time instead of step count
+      time: timeLabel,          // Real simulation time based on cumulative data points
       t2_stat: parseFloat(normalData.toFixed(1)),      // 🔧 FIX: Round to 1 decimal - Green area (normal)
       anomaly: parseFloat(anomalyData.toFixed(1)),     // 🔧 FIX: Round to 1 decimal - Red area (anomaly)
       original_t2: parseFloat(item.t2_stat.toFixed(1)), // 🔧 FIX: Round original value

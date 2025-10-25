@@ -307,7 +307,12 @@ type ChatContextId = {
   conversation: ChatMessage[];
   setConversation: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 };
-export type StatContextId = { t2_stat: number; anomaly: boolean; time: string };
+export type StatContextId = {
+  t2_stat: number;
+  anomaly: boolean;
+  time?: string; // Legacy field (optional)
+  cumulativeTime?: number; // 🔧 FIX: Cumulative data point counter for accurate time tracking
+};
 
 interface SimulatorInterface {
   csvFile: string;
@@ -499,6 +504,8 @@ export default function App() {
   const [postFaultDataCount, setPostFaultDataCount] = useState<number>(0);
   const [liveCount, setLiveCount] = useState<number>(0);
   const [liveDataStarted, setLiveDataStarted] = useState<boolean>(false); // Track when live data starts
+  // 🔧 FIX: Track cumulative time (total data points processed)
+  const [cumulativeDataPoints, setCumulativeDataPoints] = useState<number>(0);
   // Stabilize flashing: consider connected only after first message within a session.
   const [liveEverReceived, setLiveEverReceived] = useState<boolean>(false);
 
@@ -554,6 +561,8 @@ export default function App() {
       console.log("[Auto-Switch] 5 seconds elapsed, switching to Live mode");
       setDataSource('Live');
       setLiveDataStarted(false); // Will trigger reset on first live data
+      // 🔧 FIX: Don't reset cumulative time - continue from preloaded data
+      // setCumulativeDataPoints will continue counting from where Replay left off
     }, 5000); // 5 seconds
 
     return () => clearTimeout(autoSwitchTimer);
@@ -938,6 +947,9 @@ export default function App() {
 
   useEffect(() => {
     if (currentRow) {
+      // 🔧 FIX: Increment cumulative time counter
+      setCumulativeDataPoints(prev => prev + 1);
+
       setDataPoints((prevDataPoints) => {
         const newDataPoints = { ...prevDataPoints };
         for (const [key, value] of Object.entries(currentRow)) {
@@ -946,28 +958,31 @@ export default function App() {
           }
           const numValue = parseFloat(value); // Convert the string value to a number
           if (!isNaN(numValue)) {
-            newDataPoints[key] = [...newDataPoints[key], numValue].slice(-30);
+            // 🔧 FIX: Keep last 500 points instead of 30 (same as preloaded data)
+            newDataPoints[key] = [...newDataPoints[key], numValue].slice(-500);
           }
         }
+        // 🔧 FIX: Store cumulative time in the 'time' array
+        if (!newDataPoints['time']) {
+          newDataPoints['time'] = [];
+        }
+        newDataPoints['time'] = [...newDataPoints['time'], cumulativeDataPoints].slice(-500);
+
         return newDataPoints;
       });
       setT2_stat((data) => {
         if ("t2_stat" in currentRow && "anomaly" in currentRow) {
-          // Fixed: Use simple sequential time for better visualization
-          const currentTime = Number(currentRow.time) || data.length;
-          const timeString = `T${currentTime.toString().padStart(3, '0')}`;
-
           const anomalyVal = String((currentRow as any).anomaly).toLowerCase() === "true";
 
-          // Keep only last 200 data points for better resolution
+          // 🔧 FIX: Keep last 500 data points (same as DCS Screen)
           const newData = [
             ...data,
             {
               t2_stat: Number(currentRow.t2_stat),
               anomaly: anomalyVal,
-              time: timeString,
+              cumulativeTime: cumulativeDataPoints, // Store cumulative time
             },
-          ].slice(-200);
+          ].slice(-500);
 
           return newData;
         } else {
@@ -1081,15 +1096,18 @@ export default function App() {
             onRow={(row)=>{
               setCurrentRow(row);
               if(!liveEverReceived) setLiveEverReceived(true);
-              // FIX: Clear t2_stat when first live data arrives to reset time to 0
+              // 🔧 FIX: Don't reset time - continue from preloaded data
               if (!liveDataStarted) {
-                console.log("✅ First live data received - resetting anomaly detection time to 0");
-                setT2_stat([]);
+                console.log("✅ First live data received - continuing from preloaded data");
                 setLiveDataStarted(true);
               }
             }}
             onConnect={() => { console.log("[Live] SSE connection opened (waiting for data...)"); }}
-            onDisconnect={() => { setLiveConnected(false); setLiveEverReceived(false); setLiveDataStarted(false); }}
+            onDisconnect={() => {
+              setLiveConnected(false);
+              setLiveEverReceived(false);
+              setLiveDataStarted(false);
+            }}
             onMessage={() => { setLiveCount((c) => c + 1); setLiveConnected(true); }}
           />
         )}
@@ -1142,11 +1160,12 @@ export default function App() {
                   onChange={(v)=>{
                     const newSource = (v as 'Replay'|'Live')||'Replay';
                     setDataSource(newSource);
-                    // FIX: Reset anomaly detection time when switching modes
+                    // 🔧 FIX: Reset cumulative time and data when switching modes
                     if (newSource === 'Live') {
                       setLiveDataStarted(false); // Will trigger reset on first live data
                     } else {
                       setT2_stat([]); // Clear for replay mode
+                      setCumulativeDataPoints(0); // Reset time counter
                     }
                   }}
                   miw="160px"
@@ -1154,6 +1173,7 @@ export default function App() {
                 <Button size="xs" onClick={()=>{
                   setDataSource('Live');
                   setLiveDataStarted(false); // Will trigger reset on first live data
+                  setCumulativeDataPoints(0); // 🔧 FIX: Reset time counter
                 }}>
                   Use Live
                 </Button>
