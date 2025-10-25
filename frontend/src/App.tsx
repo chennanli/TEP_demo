@@ -498,6 +498,7 @@ export default function App() {
   const [prevFaultId, setPrevFaultId] = useState<number>(0);
   const [postFaultDataCount, setPostFaultDataCount] = useState<number>(0);
   const [liveCount, setLiveCount] = useState<number>(0);
+  const [liveDataStarted, setLiveDataStarted] = useState<boolean>(false); // Track when live data starts
   // Stabilize flashing: consider connected only after first message within a session.
   const [liveEverReceived, setLiveEverReceived] = useState<boolean>(false);
 
@@ -552,6 +553,7 @@ export default function App() {
     const autoSwitchTimer = setTimeout(() => {
       console.log("[Auto-Switch] 5 seconds elapsed, switching to Live mode");
       setDataSource('Live');
+      setLiveDataStarted(false); // Will trigger reset on first live data
     }, 5000); // 5 seconds
 
     return () => clearTimeout(autoSwitchTimer);
@@ -1076,9 +1078,18 @@ export default function App() {
           />
         ) : (
           <LiveSubscriber
-            onRow={(row)=>{ setCurrentRow(row); if(!liveEverReceived) setLiveEverReceived(true); }}
+            onRow={(row)=>{
+              setCurrentRow(row);
+              if(!liveEverReceived) setLiveEverReceived(true);
+              // FIX: Clear t2_stat when first live data arrives to reset time to 0
+              if (!liveDataStarted) {
+                console.log("✅ First live data received - resetting anomaly detection time to 0");
+                setT2_stat([]);
+                setLiveDataStarted(true);
+              }
+            }}
             onConnect={() => { console.log("[Live] SSE connection opened (waiting for data...)"); }}
-            onDisconnect={() => { setLiveConnected(false); setLiveEverReceived(false); }}
+            onDisconnect={() => { setLiveConnected(false); setLiveEverReceived(false); setLiveDataStarted(false); }}
             onMessage={() => { setLiveCount((c) => c + 1); setLiveConnected(true); }}
           />
         )}
@@ -1128,10 +1139,22 @@ export default function App() {
                 <Select
                   data={[{value:'Replay',label:'Replay (CSV)'},{value:'Live',label:'Live (stream)'}]}
                   value={dataSource}
-                  onChange={(v)=>setDataSource((v as 'Replay'|'Live')||'Replay')}
+                  onChange={(v)=>{
+                    const newSource = (v as 'Replay'|'Live')||'Replay';
+                    setDataSource(newSource);
+                    // FIX: Reset anomaly detection time when switching modes
+                    if (newSource === 'Live') {
+                      setLiveDataStarted(false); // Will trigger reset on first live data
+                    } else {
+                      setT2_stat([]); // Clear for replay mode
+                    }
+                  }}
                   miw="160px"
                 />
-                <Button size="xs" onClick={()=>setDataSource('Live')}>
+                <Button size="xs" onClick={()=>{
+                  setDataSource('Live');
+                  setLiveDataStarted(false); // Will trigger reset on first live data
+                }}>
                   Use Live
                 </Button>
 
