@@ -70,6 +70,9 @@
 
 ---
 
+
+
+
 ### **Segment 3: DCS Monitoring Interface (1 minute)**
 
 **Screen**: Click "Open Fault Analysis Frontend" → Switch to frontend page
